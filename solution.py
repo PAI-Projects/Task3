@@ -104,8 +104,14 @@ class BO_algo(object):
 
         assert x.shape == (1, 2)
         self.previous_points.append([float(x[:, 0]), float(x[:, 1]), float(z), float(c)])
-        # TODO: enter your code here
-        raise NotImplementedError
+
+        observations = np.array(self.previous_points)
+        X = observations[:, 0:2]
+        Z = observations[:, 2]
+        C = observations[:, 3]
+
+        self.objective_model.fit(X=X, y=Z)
+        self.objective_model.fit(X=X, y=C)
 
     def get_solution(self) -> np.ndarray:
         """
