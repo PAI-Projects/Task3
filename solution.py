@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel, RBF
 
@@ -85,8 +86,15 @@ class BO_algo(object):
             value of the acquisition function at x
         """
 
-        # TODO: enter your code here
-        raise NotImplementedError
+        mean, std = self.objective_model.predict(X=x.reshape(1, -1), return_std=True)
+
+        # Expected Improvement: Formula (2) in paper gelbart et al. 2014
+        z = (x - mean) / std
+        EI = std * (z * norm.cdf(z) + norm.pdf(z))
+
+        # TODO take constraint in to account
+
+        return EI.sum()  # TODO what do we need to do for a multidimensional domain
 
     def add_data_point(self, x: np.ndarray, z: float, c: float):
         """
