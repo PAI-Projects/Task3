@@ -86,15 +86,19 @@ class BO_algo(object):
             value of the acquisition function at x
         """
 
-        mean, std = self.objective_model.predict(X=x.reshape(1, -1), return_std=True)
-
         # Expected Improvement: Formula (2) in paper gelbart et al. 2014
+        mean, std = self.objective_model.predict(X=x.reshape(1, -1), return_std=True)
         z = (x - mean) / std
         EI = std * (z * norm.cdf(z) + norm.pdf(z))
+        EI = EI.mean()  # TODO do we just take the mean?
 
         # TODO take constraint in to account
+        c_mean, c_std = self.constraint_model.predict(X=x.reshape(1, -1), return_std=True)
+        p = norm.cdf(x=x, loc=c_mean, scale=c_std)
 
-        return EI.sum()  # TODO what do we need to do for a multidimensional domain
+        a = EI * p
+
+        return a.mean()  # TODO do we just take the mean?
 
     def add_data_point(self, x: np.ndarray, z: float, c: float):
         """
