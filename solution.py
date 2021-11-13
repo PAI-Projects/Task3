@@ -149,8 +149,16 @@ class BO_algo(object):
             1 x domain.shape[0] array containing the optimal solution of the problem
         """
 
-        # TODO: enter your code here
-        return self.optimize_acquisition_function().reshape(2)
+        # filter points that do not fulfill the constraint g(x) <= 0
+        points_fulfill_constraint = [[x1, x2, z] for x1, x2, z, g in self.previous_points if g <= 0]
+
+        points_fulfill_constraint = np.array(points_fulfill_constraint)
+
+        X = points_fulfill_constraint[:, 0:2]
+        Z = points_fulfill_constraint[:, 2]
+        idx = np.argmin(Z)  # get index of observed minimum value
+
+        return X[idx]
 
 
 """ 
