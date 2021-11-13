@@ -5,6 +5,8 @@ import logging
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF
 
 EXTENDED_EVALUATION = False
 # Set `EXTENDED_EVALUATION` to `True` in order to visualize your predictions.
@@ -17,12 +19,13 @@ class BO_algo(object):
     def __init__(self):
         """Initializes the algorithm with a parameter configuration. """
 
-        # TODO: enter your code here
         self.previous_points = []
         # IMPORTANT: DO NOT REMOVE THOSE ATTRIBUTES AND USE sklearn.gaussian_process.GaussianProcessRegressor instances!
         # Otherwise, the extended evaluation will break.
-        self.constraint_model = None  # TODO : GP model for the constraint function
-        self.objective_model = None  # TODO : GP model for your objective function
+        # GP model for your objective function
+        self.objective_model = GaussianProcessRegressor(ConstantKernel(constant_value=1.5) * RBF(length_scale=1.5))
+        # GP model for the constraint function
+        self.constraint_model = GaussianProcessRegressor(ConstantKernel(constant_value=3.5) * RBF(length_scale=2))
 
     def next_recommendation(self) -> np.ndarray:
         """
