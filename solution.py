@@ -9,7 +9,7 @@ from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel, RBF
 
-EXTENDED_EVALUATION = False
+EXTENDED_EVALUATION = True
 # Set `EXTENDED_EVALUATION` to `True` in order to visualize your predictions.
 
 
@@ -40,6 +40,7 @@ class BO_algo(object):
 
         # TODO: enter your code here
         # In implementing this function, you may use optimize_acquisition_function() defined below.
+        return self.optimize_acquisition_function()
 
     def optimize_acquisition_function(self) -> np.ndarray:  # DON'T MODIFY THIS FUNCTION
         """
@@ -92,13 +93,26 @@ class BO_algo(object):
         EI = std * (z * norm.cdf(z) + norm.pdf(z))
         EI = EI.mean()  # TODO do we just take the mean?
 
-        # TODO take constraint in to account
+        # 2.2 The latent constraint function g(x)
+        #  c'(x) = c(x) - \lambda
+        #  constraint wanted: c'(X) <= 0
+        #  set g(x) = -c'(x) then g(x) >= 0 iff c'(X) <= 0
+        #  Pr(c'(x)) = Pr(g(x) >= 0) = 1 - Pr(g(x) <= 0)
+
+        # we marginalize our gp at g(x) to get a gaussian that should represent -c'(x)
         c_mean, c_std = self.constraint_model.predict(X=x.reshape(1, -1), return_std=True)
-        p = norm.cdf(x=x, loc=c_mean, scale=c_std)
 
-        a = EI * p
+        # compute the probability 1 - Pr(g(x) <= 0)
+        p = 1 - norm.cdf(x=0, loc=c_mean, scale=c_std)
+        p = p.prod()  # TODO do we just take the prod?
 
-        return a.mean()  # TODO do we just take the mean?
+        if c_mean > 0:  # 3.2 finding the feasible region
+            return p
+        else:
+            # compute acquisition
+            a = EI * p
+
+            return a
 
     def add_data_point(self, x: np.ndarray, z: float, c: float):
         """
@@ -123,7 +137,7 @@ class BO_algo(object):
         C = observations[:, 3]
 
         self.objective_model.fit(X=X, y=Z)
-        self.objective_model.fit(X=X, y=C)
+        self.constraint_model.fit(X=X, y=-C)  # we use g(x) = -c'(x)
 
     def get_solution(self) -> np.ndarray:
         """
@@ -136,7 +150,7 @@ class BO_algo(object):
         """
 
         # TODO: enter your code here
-        raise NotImplementedError
+        return self.optimize_acquisition_function().reshape(2)
 
 
 """ 
