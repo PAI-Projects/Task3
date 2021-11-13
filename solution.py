@@ -22,7 +22,7 @@ class BO_algo(object):
         # IMPORTANT: DO NOT REMOVE THOSE ATTRIBUTES AND USE sklearn.gaussian_process.GaussianProcessRegressor instances!
         # Otherwise, the extended evaluation will break.
         self.constraint_model = None  # TODO : GP model for the constraint function
-        self.objective_model = None  # TODO : GP model for your acquisition function
+        self.objective_model = None  # TODO : GP model for your objective function
 
     def next_recommendation(self) -> np.ndarray:
         """
@@ -94,9 +94,9 @@ class BO_algo(object):
         x: np.ndarray
             point in the domain of f
         z: np.ndarray
-            value of the acquisition function at x
+            value of the objective function at x
         c: np.ndarray
-            value of the condition function at x
+            value of the constraint function at x
         """
 
         assert x.shape == (1, 2)
